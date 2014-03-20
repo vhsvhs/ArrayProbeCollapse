@@ -1,3 +1,41 @@
+##################################################################################
+#
+# ArrayProbeCollapse.py
+#
+# written by Victor Hanson-Smith
+# victorhansonsmith@gmail.com
+#
+# This Python script reads microarray data and then collapses redundant probe
+# reads by calculating their mean, or median.
+#
+##################################################################################
+# USAGE: Invoke this script from the Terminal or command-line
+#
+# %> python ArrayProbeCollapse.py INPATH OUTPATH MODE
+#
+# INPATH is the filepath to your uncollapsed original data. This
+# file must have a header row.
+#
+# OUTPATH is the filepath to your desired output file. This file
+# will be created new, or overwritten if it already exists.
+#
+# MODE indicates if collapsing should occur by averaging, or by taking
+# the median. For the average, specify F or mean. For the median,
+# specify T or median.
+#
+# EXAMPLE:
+# %> python ArrayProbeCollapse.py mydata.txt mydata.median.out.txt median
+#
+# . . . will read the file mydata.txt, collapse redundant rows by taking the median,
+# and then write the results to mydata.median.out.txt
+#
+# %> python ArrayProbeCollapse.py mydata.txt mydata.mean.out.txt F
+#
+# . . . will read the file mydata.txt, collapse redundant rows by taking the mean,
+# and then write the results to mydata.mean.out.txt
+#
+#######################################################################################
+
 import os, sys
 
 def usage():
@@ -16,12 +54,12 @@ if sys.argv.__len__() < 4:
     usage()
     exit()
 
-finpath = sys.argv[1]
-foutpath = sys.argv[2]
-mode = sys.argv[3]
+finpath = sys.argv[1] # the input path
+foutpath = sys.argv[2] # the output path
+mode = sys.argv[3] # the mode (mean or median)
 if False == os.path.exists(finpath):
     print "\n. I can't find your input file", finpath
-if mode != "mean" and mode != "median":
+if mode != "mean" and mode != "median" and mode != "F" and mode != "T":
     print "\n. The third argument should be either 'mean' or 'median'"
     usage()
     exit()
@@ -47,6 +85,7 @@ def read_input(finpath):
     
     fin = open(finpath, "r")
     firstline = True
+    countlines = 0
     for l in fin.xreadlines():
         # Skip empty lines:
         if l.__len__() < 2:
@@ -56,7 +95,8 @@ def read_input(finpath):
             firstline = False
             header_line = l
         else:
-            tokens = l.split("\t")
+            countlines += 1
+            tokens = l.split()
             name = tokens[0]
             if name not in name_data:
                 name_data[name] = []
@@ -69,10 +109,16 @@ def read_input(finpath):
                     value = float(tokens[ii])
                     name_data[name][ii-1].append( value )
                 except ValueError:
-                    pass                    
+                    pass
+    print "\n. OK, I found", name_data.keys().__len__(), "unique probe names, and",countlines,"total rows of data."                   
     return [name_data, header_line]
 
 def collapse(name_data):
+    if mode == "mean" or mode == "F": 
+        print "\n. I'm collapsing redundant probes by computing their mean."
+    if mode == "median" or mode == "T": 
+        print "\n. I'm collapsing redundant probes by computing their median."
+    
     collapsed_data = {}
     for name in name_data:
         collapsed_data[name] = []
@@ -80,13 +126,14 @@ def collapse(name_data):
             if name_data[name][col].__len__() < 1:
                 collapsed_data[name].append( "NA" )
             else:
-                if mode == "mean":                
+                if mode == "mean" or mode == "F":                
                     collapsed_data[name].append( "%.3f"%mean(name_data[name][col]) )
-                elif mode == "median":                
+                elif mode == "median" or mode == "T":                
                     collapsed_data[name].append( "%.3f"%median(name_data[name][col]) )
     return collapsed_data
 
 def write_output(name_data, header):
+    print "\n. I'm writing the collapsed data to", foutpath
     fout = open(foutpath, "w")
     names = name_data.keys()
     names.sort()
@@ -105,6 +152,7 @@ def write_output(name_data, header):
 [name_data, header] = read_input(finpath)
 collapsed_name_data = collapse(name_data)
 write_output(collapsed_name_data, header)
+print "\n. I'm done. Goodbye.\n"
 
 
     
