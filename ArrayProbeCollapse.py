@@ -39,14 +39,12 @@
 import os, sys
 
 def usage():
-    print "\n\nArrayProbeCollapse.py"
-    print ""
-    print "Usage:"
+    print "\n\nUsage:"
     print "$> python ArrayProbeCollapse.py INPATH OUTPATH MODE"
     print ""
     print "INPATH is the path to your input file."
     print "OUTPUT is the desired path to your (collapsed) output file."
-    print "MODE is approach to collapsing, either 'mean' or 'median'."
+    print "MODE is approach used to collapse redundant rows. For mean, specify 'mean' or 'F'. For median, specify 'median' or 'T'."
     print "\n"
 
 if sys.argv.__len__() < 4:
