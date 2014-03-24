@@ -84,7 +84,12 @@ def read_input(finpath):
     fin = open(finpath, "r")
     firstline = True
     countlines = 0
-    for l in fin.xreadlines():
+    lines = fin.readlines()
+    if lines.__len__() == 1:
+        lines = lines[0].split("\r")
+    
+    for l in lines:
+        
         # Skip empty lines:
         if l.__len__() < 2:
             continue
